@@ -1,0 +1,9 @@
+{
+    "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+    "resource": "https://server.domain.com:8443",
+    "scope": "https://www.googleapis.com/auth/cloud-platform",
+    "audience": "https://server.domain.com:8443",
+    "requested_token_type": "urn:ietf:params:oauth:token-type:jwt",
+    "subject_token": "iamtheeggman",
+    "subject_token_type": "urn:ietf:params:oauth:token-type:access_token"
+}
