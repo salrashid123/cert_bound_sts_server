@@ -138,7 +138,7 @@ func getKey(token *jwt.Token) (interface{}, error) {
 func (s *server) SayHello(ctx context.Context, in *echo.EchoRequest) (*echo.EchoReply, error) {
 
 	log.Println("Got rpc: --> ", in.Name)
-	ev := ctx.Value(contextKey("event")).(parsedData)
+	ev := ctx.Value(contextKey("event")).(*parsedData)
 	log.Println(" with verified Subject: --> ", ev.Msg)
 
 	var h, err = os.Hostname()

@@ -173,7 +173,7 @@ When gRPC contacts an STS server on its own, it does NOT use client certificates
 
 see [sts.go](https://github.com/grpc/grpc-go/blob/master/credentials/sts/sts.go#L195-L204)
 
-This is problem since the STS server needs to know about the client cert for all this to work anyway.
+This is problem since the STS server needs to know about the client cert for all this to work anyway. [Issue#5099](https://github.com/grpc/grpc-go/issues/5099)
 
 For now, i've just left the code in as-is even though its not working
 
@@ -189,7 +189,7 @@ go run src/grpc_server.go --grpcport :50051 \
 go run src/grpc_client.go --host localhost:50051 \
    --servername grpc.domain.com --tlsCA ../certs/tls-ca.crt \
    --tlsCert ../certs/alice.crt --tlsKey ../certs/alice.key \
-   --stsaddress https://sts.domain.com:8081 --stsCred /tmp/cred.txt \
+   --stsaddress https://sts.domain.com:8081/token --stsCred /tmp/cred.txt \
    --stsSNIServerName sts.domain.com
 ```
 

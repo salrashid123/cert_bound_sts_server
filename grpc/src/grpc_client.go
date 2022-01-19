@@ -32,7 +32,7 @@ func main() {
 	tlsCert := flag.String("tlsCert", "client.crt", "TLS Client Certificate")
 	tlsKey := flag.String("tlsKey", "client.key", "TLS Client Key")
 
-	stsaddress := flag.String("stsaddress", "https://sts.domain.com:8081", "STS Server address")
+	stsaddress := flag.String("stsaddress", "https://sts.domain.com:8081/token", "STS Server address")
 	stsaudience := flag.String("stsaudience", "grpcs://grpc.domain.com:50051", "the audience and resource value to send to STS server")
 	scope := flag.String("scope", "https://www.googleapis.com/auth/cloud-platform", "scope to send to STS server")
 
@@ -72,12 +72,8 @@ func main() {
 		Certificates: []tls.Certificate{clientCerts},
 		RootCAs:      caCertPool,
 	}
-
-	screds := credentials.NewTLS(&stlsConfig)
-
-	fmt.Sprintf("%v", screds)
-
-	//https://raw.githubusercontent.com/grpc/grpc-go/master/credentials/sts/sts.go
+	fmt.Printf("%v", stlsConfig)
+	// https://github.com/grpc/grpc-go/issues/5099
 
 	stscreds, err := sts.NewCredentials(sts.Options{
 		TokenExchangeServiceURI: *stsaddress,
@@ -87,6 +83,7 @@ func main() {
 		SubjectTokenPath:        *stsCred,
 		SubjectTokenType:        "urn:ietf:params:oauth:token-type:access_token",
 		RequestedTokenType:      "urn:ietf:params:oauth:token-type:jwt",
+		// TLSConfig:               stlsConfig,
 	})
 	if err != nil {
 		log.Fatalf("unable to create TokenSource: %v", err)
