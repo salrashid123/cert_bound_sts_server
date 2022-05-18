@@ -28,7 +28,7 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/lestrrat/go-jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -57,7 +57,7 @@ var (
 	jwkFile  = flag.String("jwkFile", "jwk.key", "JWK file")
 	hs       *health.Server
 
-	jwtSet *jwk.Set
+	jwtSet jwk.Set
 	conn   *grpc.ClientConn
 )
 
@@ -129,8 +129,12 @@ func getKey(token *jwt.Token) (interface{}, error) {
 	if !ok {
 		return nil, errors.New("expecting JWT header to have string kid")
 	}
-	if key := jwtSet.LookupKeyID(keyID); len(key) == 1 {
-		return key[0].Materialize()
+	if key, ok := jwtSet.LookupKeyID(keyID); ok {
+		var raw interface{}
+		if err := key.Raw(&raw); err != nil {
+			return nil, err
+		}
+		return raw, nil
 	}
 	return nil, errors.New("unable to find key")
 }
