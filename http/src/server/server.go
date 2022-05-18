@@ -16,7 +16,7 @@ import (
 	//"net/http/httputil"
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
-	"github.com/lestrrat/go-jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"golang.org/x/net/http2"
 )
 
@@ -28,7 +28,7 @@ var (
 	jwkFile = flag.String("jwkFile", "jwk.key", "JWK file")
 	server  *http.Server
 
-	jwtSet *jwk.Set
+	jwtSet jwk.Set
 )
 
 const ()
@@ -55,8 +55,12 @@ func getKey(token *jwt.Token) (interface{}, error) {
 	if !ok {
 		return nil, errors.New("expecting JWT header to have string kid")
 	}
-	if key := jwtSet.LookupKeyID(keyID); len(key) == 1 {
-		return key[0].Materialize()
+	if key, ok := jwtSet.LookupKeyID(keyID); ok {
+		var raw interface{}
+		if err := key.Raw(&raw); err != nil {
+			return nil, err
+		}
+		return raw, nil
 	}
 	return nil, errors.New("unable to find key")
 }
@@ -153,7 +157,7 @@ func main() {
 
 	jwtSet, err = jwk.Parse(jwkBytes)
 	if err != nil {
-		fmt.Printf("Unable to load JWK Set: ", err)
+		fmt.Printf("Unable to load JWK Set: %s", err)
 		return
 	}
 
