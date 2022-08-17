@@ -12,10 +12,10 @@ As an example, consider an application is in possession of a client certificate 
 
 ```bash
 $ openssl x509 -in certs/alice.crt -outform DER | openssl dgst -sha256 | cut -d" " -f2
-492d412c90b7d1747f02583d03dbf52e009fde113dd454bd5de572bde6595efc
+59ee4ae023061d7817e2eaeea589bf66ada02219bb77a31d35313246ef9be829
 
-$ echo "492d412c90b7d1747f02583d03dbf52e009fde113dd454bd5de572bde6595efc" | xxd -r -p - | openssl enc -a 
-SS1BLJC30XR/Alg9A9v1LgCf3hE91FS9XeVyveZZXvw=
+$ echo "59ee4ae023061d7817e2eaeea589bf66ada02219bb77a31d35313246ef9be829" | xxd -r -p - | openssl enc -a 
+We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck=
 ```
 
 If JWT token is issued with the following standard claim:
@@ -34,7 +34,7 @@ If JWT token is issued with the following standard claim:
   "iss": "https://sts.domain.com",
   "sub": "alice",
   "cnf": {
-    "x5t#S256": "SS1BLJC30XR/Alg9A9v1LgCf3hE91FS9XeVyveZZXvw="
+    "x5t#S256": "We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck="
   }
 }
 ```
@@ -71,7 +71,7 @@ Which eventually is sealed into a bearer token (JWT in this case) using the foll
 ```json
 {
   "cnf": {
-    "x5t#S256": "SS1BLJC30XR/Alg9A9v1LgCf3hE91FS9XeVyveZZXvw="
+    "x5t#S256": "We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck="
   }
 }
 ```
@@ -109,7 +109,7 @@ The keyID is just an opaque hash of the sts.crt's public key and just use in the
 cd sts_server/
 go run sts_server.go --port :8081 --tlsCA ../certs/tls-ca.crt \
   --tlsCert ../certs/sts.crt --tlsKey ../certs/sts.key \
-  --jwtPrivateKey ../certs/jwt.key --jwtKeyID b9b8c3e23bb5d95c1520049e8824f9105cc207e
+  --jwtPrivateKey ../certs/jwt.key --jwtKeyID a97ff76fe140886420a9f4cd8fedeab1514a45e9
 ```
 
 ### curl

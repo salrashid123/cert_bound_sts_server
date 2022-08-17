@@ -191,21 +191,21 @@ func tokenhandlerpost(w http.ResponseWriter, r *http.Request) {
 
 	/*
 		   Verify Alice and Bob's provided token and certificate the should be using...
-			Alice's token is iamtheeggman  with cert hash SS1BLJC30XR/Alg9A9v1LgCf3hE91FS9XeVyveZZXvw=
-			Bob's token is iamthewalrus with cert hash NoxN90z9e5dQr8JBgRPdo7t15Dcs2uakL2YoO+9NkR4=
+			Alice's token is iamtheeggman  with cert hash We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck=
+			Bob's token is iamthewalrus with cert hash NpHVkfjobce62VfcpWQDRTjIENN3O0VAmbBGvkhDUd4=
 	*/
 
 	var subject string
 	switch val.SubjectToken {
 	case "iamtheeggman":
-		if clientCertificateHash != "SS1BLJC30XR/Alg9A9v1LgCf3hE91FS9XeVyveZZXvw=" {
+		if clientCertificateHash != "We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck=" {
 			log.Printf("Provided client certificate for user does not match")
 			http.Error(w, "Provided client certificate for user does not match", http.StatusUnauthorized)
 			return
 		}
 		subject = "alice"
 	case "iamthewalrus":
-		if clientCertificateHash != "NoxN90z9e5dQr8JBgRPdo7t15Dcs2uakL2YoO+9NkR4=" {
+		if clientCertificateHash != "NpHVkfjobce62VfcpWQDRTjIENN3O0VAmbBGvkhDUd4=" {
 			log.Printf("Provided client certificate for user does not match")
 			http.Error(w, "Provided client certificate for user does not match", http.StatusUnauthorized)
 			return
