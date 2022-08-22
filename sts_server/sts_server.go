@@ -105,7 +105,7 @@ func eventsMiddleware(h http.Handler) http.Handler {
 			hasher := sha256.New()
 			hasher.Write(v.Raw)
 			clientCertificateHash = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
-			//log.Printf("Peer certHash:  -->  %s\n", clientCertificateHash)
+			log.Printf("Peer certHash:  -->  %s\n", clientCertificateHash)
 		} else {
 			fmt.Println("No peer certificates sent")
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)

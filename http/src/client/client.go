@@ -3,13 +3,14 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
+
+	salsts "github.com/salrashid123/oauth2/sts"
+	"golang.org/x/oauth2"
 )
 
 var ()
@@ -61,74 +62,92 @@ func main() {
 		RootCAs:      caCertPool,
 	}
 
-	stsTR := &http.Transport{
-		TLSClientConfig: stsTLSConfig,
-	}
-	stsClient := &http.Client{Transport: stsTR}
+	stsTokenSource, _ := salsts.STSTokenSource(
+		&salsts.STSTokenConfig{
+			TokenExchangeServiceURI: *stsAddress,
+			Resource:                *stsAudience,
+			Audience:                *stsAudience,
+			Scope:                   *stsScope,
+			SubjectTokenSource: oauth2.StaticTokenSource(&oauth2.Token{
+				AccessToken: *stsCred,
+			}),
+			SubjectTokenType:   "urn:ietf:params:oauth:token-type:access_token",
+			RequestedTokenType: "urn:ietf:params:oauth:token-type:jwt",
+			TLSConfig:          *stsTLSConfig,
+		},
+	)
 
-	form := url.Values{}
-	form.Add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-	form.Add("resource", *stsAudience)
-	form.Add("audience", *stsAudience)
-	form.Add("subject_token_type", "urn:ietf:params:oauth:token-type:access_token")
-	form.Add("requested_token_type", "urn:ietf:params:oauth:token-type:jwt")
-	form.Add("scope", *stsScope)
-	form.Add("subject_token", *stsCred)
-
-	stsResp, err := stsClient.PostForm(*stsAddress, form)
+	tok, err := stsTokenSource.Token()
 	if err != nil {
-		fmt.Printf("Error: could not connect %v", err)
-		return
+		log.Fatalf("did not read token from tokensource: %v", err)
 	}
-	defer stsResp.Body.Close()
+	// stsTR := &http.Transport{
+	// 	TLSClientConfig: stsTLSConfig,
+	// }
+	// stsClient := &http.Client{Transport: stsTR}
+	// form := url.Values{}
+	// form.Add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
+	// form.Add("resource", *stsAudience)
+	// form.Add("audience", *stsAudience)
+	// form.Add("subject_token_type", "urn:ietf:params:oauth:token-type:access_token")
+	// form.Add("requested_token_type", "urn:ietf:params:oauth:token-type:jwt")
+	// form.Add("scope", *stsScope)
+	// form.Add("subject_token", *stsCred)
 
-	if stsResp.StatusCode != http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(stsResp.Body)
-		fmt.Printf("Unable to exchange token %s,  %v", string(bodyBytes), err)
-		return
-	}
+	// stsResp, err := stsClient.PostForm(*stsAddress, form)
+	// if err != nil {
+	// 	fmt.Printf("Error: could not connect %v", err)
+	// 	return
+	// }
+	// defer stsResp.Body.Close()
 
-	body, err := ioutil.ReadAll(stsResp.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("%v\n", stsResp.Status)
+	// if stsResp.StatusCode != http.StatusOK {
+	// 	bodyBytes, err := ioutil.ReadAll(stsResp.Body)
+	// 	fmt.Printf("Unable to exchange token %s,  %v", string(bodyBytes), err)
+	// 	return
+	// }
 
-	var result TokenResponse
-	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to the go struct pointer
-		fmt.Println("Can not unmarshal JSON")
-		return
-	}
+	// body, err := ioutil.ReadAll(stsResp.Body)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// fmt.Printf("%v\n", stsResp.Status)
 
-	fmt.Printf("STS Token: %s\n", result.AccessToken)
+	// var result TokenResponse
+	// if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to the go struct pointer
+	// 	fmt.Println("Can not unmarshal JSON")
+	// 	return
+	// }
+
+	fmt.Printf("STS Token: %s\n", tok.AccessToken)
+
 	// ************************************************
-
-	req, err := http.NewRequest("GET", *resourceAddress, nil)
-	if err != nil {
-		fmt.Println("Can not get Resource")
-		return
-	}
-
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", result.AccessToken))
-
+	resourceClient := http.Client{}
 	resourceTLSConfig := &tls.Config{
 		ServerName:   *resourceSNI,
 		Certificates: []tls.Certificate{clientCerts},
 		RootCAs:      caCertPool,
 	}
 
-	resourceTR := &http.Transport{
-		TLSClientConfig: resourceTLSConfig,
+	resourceTR := &oauth2.Transport{
+		Base: &http.Transport{
+			TLSClientConfig: resourceTLSConfig,
+		},
+		Source: stsTokenSource,
 	}
 
-	client := &http.Client{
-		Transport: resourceTR,
-	}
-	resp, err := client.Do(req)
+	resourceClient.Transport = resourceTR
+
+	resp, err := resourceClient.Get(*resourceAddress)
 	if err != nil {
-		fmt.Printf("Error on response.\n[ERROR] %v\n", err)
+		fmt.Println("Can not get Resource")
 		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Invalid HTTP Status Code .[%s] \n", resp.Status)
+		return
+
 	}
 	defer resp.Body.Close()
 
@@ -154,30 +173,39 @@ func main() {
 	// 	return
 	// }
 
-	// resourceTLSConfig = &tls.Config{
+	// bobResourceClient := http.Client{}
+	// bobResourceTLSConfig := &tls.Config{
 	// 	ServerName:   *resourceSNI,
 	// 	Certificates: []tls.Certificate{otherCerts},
 	// 	RootCAs:      caCertPool,
 	// }
 
-	// resourceTR = &http.Transport{
-	// 	TLSClientConfig: resourceTLSConfig,
+	// bobResourceTR := &oauth2.Transport{
+	// 	Base: &http.Transport{
+	// 		TLSClientConfig: bobResourceTLSConfig, // use bob's certificate
+	// 	},
+	// 	Source: stsTokenSource, // use alice's token
 	// }
 
-	// client = &http.Client{
-	// 	Transport: resourceTR,
-	// }
-	// resp, err = client.Do(req)
+	// bobResourceClient.Transport = bobResourceTR
+
+	// bobResp, err := bobResourceClient.Get(*resourceAddress)
 	// if err != nil {
-	// 	fmt.Printf("Error on response.\n[ERROR] %v\n", err)
+	// 	fmt.Println("Can not get Resource")
 	// 	return
 	// }
-	// defer resp.Body.Close()
+	// if bobResp.StatusCode != http.StatusOK {
+	// 	fmt.Printf("Invalid HTTP Status Code .[%s] \n", bobResp.Status)
+	// 	return
 
-	// resourceBody, err = ioutil.ReadAll(resp.Body)
+	// }
+	// defer bobResp.Body.Close()
+
+	// bobResourceBody, err := ioutil.ReadAll(bobResp.Body)
 	// if err != nil {
 	// 	fmt.Printf("Error while reading the response bytes: %v\n", err)
 	// 	return
 	// }
-	// log.Println(string([]byte(resourceBody)))
+	// log.Println(string([]byte(bobResourceBody)))
+
 }

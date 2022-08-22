@@ -145,7 +145,8 @@ go run src/server/server.go --port :8443 --tlsCA ../certs/tls-ca.crt  \
 
 Then run the client
 
-```
+```bash
+cd http/
 go run src/client/client.go --tlsCA ../certs/tls-ca.crt  \
     --tlsCert ../certs/alice.crt \
     --tlsKey ../certs/alice.key --stsaddress https://sts.domain.com:8081/token
