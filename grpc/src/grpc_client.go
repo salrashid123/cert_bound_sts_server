@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/salrashid123/scratchpad/go_cert_bound_sts/grpc/echo"
@@ -16,7 +16,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	sts "google.golang.org/grpc/credentials/sts"
+	//sts "google.golang.org/grpc/credentials/sts"
+	sts "github.com/salrashid123/sts_server/sts"
 )
 
 const ()
@@ -72,7 +73,13 @@ func main() {
 		Certificates: []tls.Certificate{clientCerts},
 		RootCAs:      caCertPool,
 	}
-	fmt.Printf("%v", stlsConfig)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &stlsConfig,
+		},
+	}
+	//fmt.Printf("%v", stlsConfig)
 	// https://github.com/grpc/grpc-go/issues/5099
 
 	stscreds, err := sts.NewCredentials(sts.Options{
@@ -83,7 +90,7 @@ func main() {
 		SubjectTokenPath:        *stsCred,
 		SubjectTokenType:        "urn:ietf:params:oauth:token-type:access_token",
 		RequestedTokenType:      "urn:ietf:params:oauth:token-type:jwt",
-		// TLSConfig:               stlsConfig,
+		HTTPClient:              client,
 	})
 	if err != nil {
 		log.Fatalf("unable to create TokenSource: %v", err)

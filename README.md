@@ -176,7 +176,7 @@ see [sts.go](https://github.com/grpc/grpc-go/blob/master/credentials/sts/sts.go#
 
 This is problem since the STS server needs to know about the client cert for all this to work anyway. [Issue#5099](https://github.com/grpc/grpc-go/issues/5099)
 
-For now, i've just left the code in as-is even though its not working
+For now, i've just forked the pending PR above into `"github.com/salrashid123/sts_server/sts"` which supports the custom `HTTPClient`
 
 ```bash
 echo -n iamtheeggman > /tmp/cred.txt
