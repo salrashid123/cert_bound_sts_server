@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	salsts "github.com/salrashid123/oauth2/sts"
+	salsts "github.com/salrashid123/sts/http"
 	"golang.org/x/oauth2"
 )
 
@@ -62,6 +62,12 @@ func main() {
 		RootCAs:      caCertPool,
 	}
 
+	stsClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: stsTLSConfig,
+		},
+	}
+
 	stsTokenSource, _ := salsts.STSTokenSource(
 		&salsts.STSTokenConfig{
 			TokenExchangeServiceURI: *stsAddress,
@@ -73,7 +79,7 @@ func main() {
 			}),
 			SubjectTokenType:   "urn:ietf:params:oauth:token-type:access_token",
 			RequestedTokenType: "urn:ietf:params:oauth:token-type:jwt",
-			TLSConfig:          *stsTLSConfig,
+			HTTPClient:         stsClient,
 		},
 	)
 

@@ -17,7 +17,7 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	//sts "google.golang.org/grpc/credentials/sts"
-	sts "github.com/salrashid123/sts_server/sts"
+	sts "github.com/salrashid123/sts/grpc"
 )
 
 const ()
