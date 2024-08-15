@@ -10,14 +10,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
+
 	"time"
 
 	"net/http"
 
 	"log"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 	"golang.org/x/net/http2"
 )
@@ -52,7 +53,7 @@ type CNF struct {
 }
 
 type CustomClaimsExample struct {
-	*jwt.StandardClaims
+	*jwt.RegisteredClaims
 	CNF `json:"cnf"`
 }
 
@@ -64,7 +65,7 @@ var (
 	tlsKey        = flag.String("tlsKey", "server.key", "Server Key")
 	tlsCA         = flag.String("tlsCA", "tls-ca.crt", "Client Certificate CA")
 	jwtPrivateKey = flag.String("jwtPrivateKey", "jwt.key", "Private Key to sign the JWT")
-	jwtKeyID      = flag.String("jwtKeyID", "b9b8c3e23bb5d95c1520049e8824f9105cc207e", "The keyid for the JWT")
+	jwtKeyID      = flag.String("jwtKeyID", "61c8b23ef9f935c0d98cf57bd4862c146e7b9fb7", "The keyid for the JWT")
 	jwtIssuerCA   = flag.String("jwtIssuerCA", "tls-ca.crt", "Client Certificate CA")
 	// support standard TokenTypes
 	tokenTypes = []string{AccessToken, RefreshToken, IDToken, SAML1, SAML2, JWT}
@@ -191,21 +192,21 @@ func tokenhandlerpost(w http.ResponseWriter, r *http.Request) {
 
 	/*
 		   Verify Alice and Bob's provided token and certificate the should be using...
-			Alice's token is iamtheeggman  with cert hash We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck=
-			Bob's token is iamthewalrus with cert hash NpHVkfjobce62VfcpWQDRTjIENN3O0VAmbBGvkhDUd4=
+			Alice's token is iamtheeggman  with cert hash A7iOckLIMP4o8YXW4voDTxGKguoTAu39TvBmtRi2jw4=
+			Bob's token is iamthewalrus with cert hash CMDVBKa48HndDNK1B8X/VAPQbYqANjaZh8mIeehwHgI=
 	*/
 
 	var subject string
 	switch val.SubjectToken {
 	case "iamtheeggman":
-		if clientCertificateHash != "We5K4CMGHXgX4urupYm/Zq2gIhm7d6MdNTEyRu+b6Ck=" {
+		if clientCertificateHash != "A7iOckLIMP4o8YXW4voDTxGKguoTAu39TvBmtRi2jw4=" {
 			log.Printf("Provided client certificate for user does not match")
 			http.Error(w, "Provided client certificate for user does not match", http.StatusUnauthorized)
 			return
 		}
 		subject = "alice"
 	case "iamthewalrus":
-		if clientCertificateHash != "NpHVkfjobce62VfcpWQDRTjIENN3O0VAmbBGvkhDUd4=" {
+		if clientCertificateHash != "CMDVBKa48HndDNK1B8X/VAPQbYqANjaZh8mIeehwHgI=" {
 			log.Printf("Provided client certificate for user does not match")
 			http.Error(w, "Provided client certificate for user does not match", http.StatusUnauthorized)
 			return
@@ -219,12 +220,12 @@ func tokenhandlerpost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims := &CustomClaimsExample{
-		&jwt.StandardClaims{
+		&jwt.RegisteredClaims{
 			Issuer:    "https://sts.domain.com",
-			Audience:  val.Audience,
+			Audience:  []string{val.Audience},
 			Subject:   subject,
-			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().Add(time.Hour * 24 * 356).Unix(),
+			IssuedAt:  &jwt.NumericDate{time.Now()},
+			ExpiresAt: &jwt.NumericDate{time.Now().Add(time.Hour * 24 * 356)},
 		},
 		c,
 	}
@@ -262,7 +263,7 @@ func main() {
 	router := mux.NewRouter()
 	router.Path("/token").Methods(http.MethodPost).HandlerFunc(tokenhandlerpost)
 
-	clientCaCert, err := ioutil.ReadFile(*tlsCA)
+	clientCaCert, err := os.ReadFile(*tlsCA)
 	if err != nil {
 		panic(err)
 	}
@@ -274,7 +275,7 @@ func main() {
 		ClientCAs:  clientCaCertPool,
 	}
 
-	keyData, err := ioutil.ReadFile(*jwtPrivateKey)
+	keyData, err := os.ReadFile(*jwtPrivateKey)
 	if err != nil {
 		log.Fatalf("Error reading JWT verification private key: %v", err)
 	}

@@ -5,7 +5,9 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
+
 	"log"
 	"net/http"
 
@@ -41,7 +43,7 @@ func main() {
 	stsCred := flag.String("stsCred", "iamtheeggman", "STS Credentials inline")
 
 	flag.Parse()
-	caCert, err := ioutil.ReadFile(*tlsCA)
+	caCert, err := os.ReadFile(*tlsCA)
 	if err != nil {
 		log.Fatalf("did not read tlsCA: %v", err)
 	}
@@ -157,7 +159,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	resourceBody, err := ioutil.ReadAll(resp.Body)
+	resourceBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error while reading the response bytes: %v\n", err)
 		return

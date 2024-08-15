@@ -3,7 +3,7 @@ module main
 go 1.15
 
 require (
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/lestrrat-go/jwx/v2 v2.0.1
 	github.com/salrashid123/scratchpad/go_cert_bound_sts/grpc/echo v0.0.0
 	github.com/salrashid123/sts/grpc v0.0.0-20220914004521-ab064d139346

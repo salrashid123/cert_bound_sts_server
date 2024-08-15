@@ -9,12 +9,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
+
 	"net/http"
 	"strings"
 
 	//"net/http/httputil"
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"golang.org/x/net/http2"
@@ -42,7 +43,7 @@ type CNF struct {
 }
 
 type CustomClaimsExample struct {
-	*jwt.StandardClaims
+	*jwt.RegisteredClaims
 	CNF `json:"cnf"`
 }
 
@@ -143,13 +144,13 @@ func main() {
 	router := mux.NewRouter()
 	router.Methods(http.MethodGet).Path("/").HandlerFunc(gethandler)
 
-	clientCaCert, err := ioutil.ReadFile(*tlsCA)
+	clientCaCert, err := os.ReadFile(*tlsCA)
 	if err != nil {
 		fmt.Printf("did not read tlsCA: %v", err)
 		return
 	}
 
-	jwkBytes, err := ioutil.ReadFile(*jwkFile)
+	jwkBytes, err := os.ReadFile(*jwkFile)
 	if err != nil {
 		fmt.Printf("did not read tlsCA: %v", err)
 		return

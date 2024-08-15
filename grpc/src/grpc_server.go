@@ -27,7 +27,7 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"google.golang.org/grpc/metadata"
 )
@@ -37,7 +37,7 @@ type CNF struct {
 }
 
 type CustomClaimsExample struct {
-	*jwt.StandardClaims
+	*jwt.RegisteredClaims
 	CNF `json:"cnf"`
 }
 
