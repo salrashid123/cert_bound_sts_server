@@ -40,7 +40,7 @@ If JWT token is issued with the following standard claim:
 }
 ```
 
-then an application can only consider that token to be valid if the mTLS session context contains the hash of the client cert's public key as shown.  In other words, once mTLS is setup with the server, the TLS certificate is hashed and compared to the claims.  This way, even if the JWT token is stolen, it can't be used without the client cert.
+then a server application can only consider that token to be valid if the mTLS session context contains the a peer leaf certificate which has the same hash as declared in the JWT.
 
 ---
 
@@ -81,6 +81,9 @@ For more information, see
 
 * [Serverless Security Token Exchange Server(STS) and gRPC STS credentials](https://github.com/salrashid123/sts_server)
 * [Envoy WASM and LUA filters for Certificate Bound Tokens](https://github.com/salrashid123/envoy_cert_bound_token)
+* [golang-jwt for Trusted Platform Module (TPM)](https://github.com/salrashid123/golang-jwt-tpm)
+* [golang-jwt for PKCS11](https://github.com/salrashid123/golang-jwt-pkcs11)
+* [golang-jwt for post quantum cryptography](https://github.com/salrashid123/golang-jwt-pqc.git)
 
 ---
 
